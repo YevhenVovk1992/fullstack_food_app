@@ -1,7 +1,8 @@
 'use strict'; 
 
 
-const deadline = '2024-04-04';
+const deadline = '2024-04-04',
+    server_url = 'http://127.0.0.1:5000/';
 
 function zeroToTomeNumber (numb) {
     if (0 < numb && numb < 10) {
@@ -187,7 +188,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     const menuCard1 = new MenuElement(
-        "img/tabs/vegy.jpg",
+        "/static/img/tabs/vegy.jpg",
         "vegy", 
         'Меню "Фитнес"', 
         `Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. 
@@ -199,7 +200,7 @@ window.addEventListener('DOMContentLoaded', () => {
         ),
         
         menuCard2 = new MenuElement(
-            "img/tabs/post.jpg",
+            "/static/img/tabs/post.jpg",
             "post",
             'Меню "Постное"',
             `Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, 
@@ -209,7 +210,7 @@ window.addEventListener('DOMContentLoaded', () => {
         ),
 
         menuCard3 = new MenuElement(
-            "img/tabs/post.jpg",
+            "/static/img/tabs/post.jpg",
             "post",
             'Меню "Постное"',
             `Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, 
@@ -225,8 +226,9 @@ window.addEventListener('DOMContentLoaded', () => {
     //Forms
 
     const forms = document.querySelectorAll('form');
+        
 
-    function postForm(form) {
+    function postForm(form, url) {
         const statusForm = document.createElement('div'),
             statusFields = {
                 loading: 'Загрузка',
@@ -238,23 +240,27 @@ window.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
             
             const formData = new FormData(form),
+                data_object = {},
                 request = new XMLHttpRequest;
 
             statusForm.classList.add('status');
             statusForm.textContent = statusFields.loading;
             form.append(statusForm);
 
-            request.open('POST', '/');
-            request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-            request.send(formData);
+            request.open('POST', url);
+            request.setRequestHeader('Content-type', 'application/json');
+            formData.forEach(function(key, value) {
+                data_object[key] = value;
+            });
+            request.send(JSON.stringify(data_object));
             request.addEventListener('load', (event) => {
                 if (request.status == 200) {
                     form.reset();
                     statusForm.textContent = statusFields.success;
-                    console.log('submit data success');
+                    console.log(request.response);
                     setTimeout(() => {
                         statusForm.remove();
-                    })
+                    }, 3000)
                 } else {
                     statusForm.textContent = statusFields.failure;
                     console.log('error sending');
@@ -264,7 +270,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     forms.forEach((form) => {
-        postForm(form);
+        postForm(form, server_url);
     });
 
 });
