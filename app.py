@@ -2,7 +2,7 @@ import json
 import os
 import dotenv
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 
 # Loading environment variables from .env file into the project
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -16,6 +16,9 @@ app.secret_key = os.environ.get('SESSION_SECRET')
 def index():
     if request.method == "GET":        
         return render_template('index.html', title='Start_with_us')
+    if request.method == "POST":
+        data = request.get_json()
+        return jsonify(data)
 
 
 if __name__ == '__main__':
