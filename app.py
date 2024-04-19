@@ -15,10 +15,10 @@ app.secret_key = os.environ.get('SESSION_SECRET')
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == "GET":        
-        return render_template('index.html', title='Start_with_us')
+        return render_template('index.html', title='Start_with_us'), 200
     if request.method == "POST":
         data = request.get_json()
-        return jsonify(data)
+        return jsonify(data), 200
 
 
 if __name__ == '__main__':

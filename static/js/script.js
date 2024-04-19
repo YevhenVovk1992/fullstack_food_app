@@ -104,46 +104,51 @@ window.addEventListener('DOMContentLoaded', () => {
     // modal windows
 
     const modalWindow = document.querySelector('.modal'),
-        contactBottons = document.querySelectorAll('[data-modal]'),        
-        contactUsTimer = setTimeout(openCloseContactUs, 20000);
+        contactBottons = document.querySelectorAll('[data-modal]'),     
+        closeButton = document.querySelector('.modal__content'),   
+        contactUsTimer = setTimeout(openModal, 20000);
 
     let doNotShowModal;
-
-    function openCloseContactUs () { 
+      
+    function openModal() {
         if (!doNotShowModal) {
             clearInterval(contactUsTimer);
             window.removeEventListener('scroll', scrollHendler);
         }  
         
         doNotShowModal = true;
-        modalWindow.classList.toggle('showModal');
+        modalWindow.classList.add('showModal');
+        document.body.style.overflow = 'hidden';
+    }
 
-        (document.body.style.overflow == 'hidden') ? document.body.style.overflow = '' : document.body.style.overflow = 'hidden'
+    function closeModal() {
+        modalWindow.classList.remove('showModal');
+        document.body.style.overflow = '';
     }
 
     function scrollHendler (event) {
         const target = event.target;
 
         if (target && (document.documentElement.scrollTop + document.documentElement.clientHeight) >= document.documentElement.scrollHeight) {
-            openCloseContactUs();
+            openModal();
         }   
     }
     
     contactBottons.forEach( (item) => {
-        item.addEventListener('click', openCloseContactUs)
+        item.addEventListener('click', openModal)
     });
 
     modalWindow.addEventListener('click', (event) => { 
         const target = event.target;
 
-        if (target && target.classList.contains('showModal')) {            
-            openCloseContactUs();
+        if ((target && target === modalWindow) || target.classList.contains('modal__close')) {            
+            closeModal();
         }
     });
 
     window.addEventListener('keydown', (event) => {      
         if (event.target && event.code == 'Escape') {
-            openCloseContactUs();
+            closeModal();
         }
     });
     
@@ -229,9 +234,10 @@ window.addEventListener('DOMContentLoaded', () => {
         
 
     function postForm(form, url) {
-        const statusForm = document.createElement('div'),
+        const statusForm = document.createElement('img'),
             statusFields = {
                 loading: 'Загрузка',
+                loadingSpinner: '/static/icons/spinner.svg',
                 success: 'Успех',
                 failure: 'Ошибка'
             };
@@ -243,30 +249,53 @@ window.addEventListener('DOMContentLoaded', () => {
                 data_object = {},
                 request = new XMLHttpRequest;
 
-            statusForm.classList.add('status');
-            statusForm.textContent = statusFields.loading;
-            form.append(statusForm);
-
+            statusForm.src = statusFields.loadingSpinner; 
+            statusForm.style.cssText = `
+                display: block;
+                margin: 0px auto;
+            `; 
             request.open('POST', url);
             request.setRequestHeader('Content-type', 'application/json');
             formData.forEach(function(key, value) {
                 data_object[key] = value;
             });
             request.send(JSON.stringify(data_object));
+            form.append(statusForm);
             request.addEventListener('load', (event) => {
                 if (request.status == 200) {
-                    form.reset();
-                    statusForm.textContent = statusFields.success;
+                    showMessageModal(statusFields.success)
+                    form.reset();                    
                     console.log(request.response);
                     setTimeout(() => {
                         statusForm.remove();
-                    }, 3000)
+                    }, 1000)
                 } else {
-                    statusForm.textContent = statusFields.failure;
+                    showMessageModal(statusFields.failure);
+                    statusForm.remove();
                     console.log('error sending');
                 }
             });
         });
+    }
+
+    function showMessageModal(message) {
+        const prevModalWindow = document.querySelector('.modal__dialog'),
+            messageModal = document.createElement('div');     
+
+        openModal();
+        messageModal.classList.add('modal__dialog');
+        messageModal.innerHTML = `
+            <div class="modal__content">            
+                <div class="modal__close" data-modal="0">×</div>
+                <div class="modal__title">${message}</div>
+            </div>`;
+        prevModalWindow.classList.add('hide');
+        prevModalWindow.parentNode.append(messageModal);
+        setTimeout(() => {
+            closeModal();
+            prevModalWindow.classList.remove('hide');
+            messageModal.remove();
+        }, 4000);
     }
 
     forms.forEach((form) => {
