@@ -16,6 +16,17 @@ function zeroToTomeNumber (numb) {
     return numb;
 }
 
+function sendRequest(url, method, body) {
+    const options = {
+        method: method,
+        headers: {'content-type': 'application/json; charset=utf8'}      
+    };
+
+    options.body = JSON.stringify(body);
+
+    return fetch(url, options);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
 
     // tabs 
@@ -241,40 +252,46 @@ window.addEventListener('DOMContentLoaded', () => {
                 success: 'Успех',
                 failure: 'Ошибка'
             };
+
+        statusForm.src = statusFields.loadingSpinner; 
+        statusForm.style.cssText = `
+            display: block;
+            margin: 0px auto;
+        `;             
             
         form.addEventListener('submit', function(event) {
             event.preventDefault();
             
-            const formData = new FormData(form),
-                data_object = {},
-                request = new XMLHttpRequest;
-
-            statusForm.src = statusFields.loadingSpinner; 
-            statusForm.style.cssText = `
-                display: block;
-                margin: 0px auto;
-            `; 
-            request.open('POST', url);
-            request.setRequestHeader('Content-type', 'application/json');
-            formData.forEach(function(key, value) {
+            const formData = new FormData(form),                
+                data_object = {};          
+                           
+            formData.forEach(function(value, key) {
                 data_object[key] = value;
-            });
-            request.send(JSON.stringify(data_object));
-            form.append(statusForm);
-            request.addEventListener('load', (event) => {
-                if (request.status == 200) {
-                    showMessageModal(statusFields.success)
-                    form.reset();                    
-                    console.log(request.response);
-                    setTimeout(() => {
-                        statusForm.remove();
-                    }, 1000)
-                } else {
+            });           
+            form.append(statusForm);            
+            sendRequest(url, 'POST', data_object)
+                .then((response) => {
+                    if (response.ok) {
+                        showMessageModal(statusFields.success);
+                        setTimeout(() => {
+                            statusForm.remove();
+                        }, 1000);
+                        return response.json();
+                    } else {
+                        console.log(response.status);
+                    }
+                })
+                .catch((error) => {
                     showMessageModal(statusFields.failure);
                     statusForm.remove();
-                    console.log('error sending');
-                }
-            });
+                    console.log(error.message);
+                })
+                .finally(() => {
+                    form.reset();    
+                })
+                .then((data) => {                   
+                    console.log(data);
+                });      
         });
     }
 
