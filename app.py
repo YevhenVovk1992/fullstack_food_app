@@ -21,5 +21,12 @@ def index():
         return jsonify(data), 200
 
 
+@app.route('/get_menu/', methods=['GET'])
+def get_menu():
+    with open('db.json', 'r', encoding="utf-8") as file:
+        menu = file.read()
+        return jsonify(menu), 200
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=os.environ.get('DEBUG'))

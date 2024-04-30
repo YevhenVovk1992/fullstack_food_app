@@ -16,15 +16,30 @@ function zeroToTomeNumber (numb) {
     return numb;
 }
 
-function sendRequest(url, method, body) {
+async function postRequest(url, method, body) {
     const options = {
         method: method,
         headers: {'content-type': 'application/json; charset=utf8'}      
-    };
+        };
 
     options.body = JSON.stringify(body);
 
-    return fetch(url, options);
+    return await fetch(url, options);
+}
+
+async function getRequest(url) {
+    const options = {
+        method: 'GET',
+        headers: {}      
+        },
+        request = await fetch(url, options);
+
+    if (!request.ok) {
+        throw new Error(`Error to connect to ${url} with ${request.status}`)
+    }
+
+    return await request.json();
+    
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -169,11 +184,11 @@ window.addEventListener('DOMContentLoaded', () => {
     // class
 
     class MenuElement {
-        constructor(src, alt, subtitle, desription, price, parent_selector, ...classes) {
-            this.src = src;
-            this.alt = alt;
-            this.subtitle = subtitle;
-            this.desription = desription;
+        constructor(img, altimg, title, descr, price, parent_selector, ...classes) {
+            this.img = img;
+            this.altimg = altimg;
+            this.title = title;
+            this.descr = descr;
             this.price = price;
             this.classes = classes;
             this.item_container = document.querySelector(parent_selector);
@@ -191,9 +206,9 @@ window.addEventListener('DOMContentLoaded', () => {
             }
 
             item.innerHTML = `                
-                    <img src=${this.src} alt=${this.alt}>
-                    <h3 class="menu__item-subtitle">${this.subtitle}</h3>
-                    <div class="menu__item-descr">${this.desription}</div>
+                    <img src=${this.img} alt=${this.altimg}>
+                    <h3 class="menu__item-subtitle">${this.title}</h3>
+                    <div class="menu__item-descr">${this.descr}</div>
                     <div class="menu__item-divider"></div>
                     <div class="menu__item-price">
                         <div class="menu__item-cost">Цена:</div>
@@ -203,41 +218,15 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const menuCard1 = new MenuElement(
-        "/static/img/tabs/vegy.jpg",
-        "vegy", 
-        'Меню "Фитнес"', 
-        `Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. 
-        Это абсолютно новый продукт с оптимальной ценой и высоким качеством!`, 
-        229,
-        '.menu .container',
-        'menu__item', 
-        'big'
-        ),
+    getRequest(server_url + '/get_menu/')    
+    .then((data) => {   
+        let menuObj = JSON.parse(data).menu;
         
-        menuCard2 = new MenuElement(
-            "/static/img/tabs/post.jpg",
-            "post",
-            'Меню "Постное"',
-            `Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, 
-            молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков. `,
-            430,
-            '.menu .container'
-        ),
-
-        menuCard3 = new MenuElement(
-            "/static/img/tabs/post.jpg",
-            "post",
-            'Меню "Постное"',
-            `Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, 
-            молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков. `,
-            430,
-            '.menu .container'
-        );
-
-    menuCard1.render();
-    menuCard2.render();
-    menuCard3.render();
+        menuObj.forEach(({img, altimg, title, descr, price}) => {
+            new MenuElement(img, altimg, title, descr, price, '.menu .container').render();
+        });
+    });
+ 
 
     //Forms
 
@@ -269,7 +258,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 data_object[key] = value;
             });           
             form.append(statusForm);            
-            sendRequest(url, 'POST', data_object)
+            postRequest(url, 'POST', data_object)
                 .then((response) => {
                     if (response.ok) {
                         showMessageModal(statusFields.success);
