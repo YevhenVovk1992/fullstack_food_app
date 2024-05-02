@@ -218,7 +218,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    getRequest(server_url + '/get_menu/')    
+    getRequest(server_url + 'get_menu/')    
     .then((data) => {   
         let menuObj = JSON.parse(data).menu;
         
@@ -308,4 +308,69 @@ window.addEventListener('DOMContentLoaded', () => {
         postForm(form, server_url);
     });
 
+
+    // Slider
+
+
+    let sliderIndex = 1;
+    const sliderContainer = document.querySelector('.offer__slider'),
+        nextSlide = document.querySelector('.offer__slider-next'),
+        prevSlide = document.querySelector('.offer__slider-prev'),
+        totalSlides = document.querySelector('#total'),
+        currentSlide = document.querySelector('#current');
+
+    function showSlide(n) {
+        const sliders = sliderContainer.querySelectorAll('.offer__slide'),
+            countSlides = sliders.length;
+
+        if (n > countSlides) {
+            sliderIndex = 1;
+        }
+
+        if (n < 1) {
+            sliderIndex = countSlides
+        }    
+
+        totalSlides.textContent = `${zeroToTomeNumber(countSlides)}`;
+        sliders.forEach((item, i) => {            
+            if (i !== (sliderIndex - 1)) {
+                item.style.display = 'none';
+            } else {
+                item.style.display = '';
+                currentSlide.textContent = `${zeroToTomeNumber(sliderIndex)}`;
+            }
+        });
+    }
+
+    function toNextSlide() { 
+        sliderIndex += 1;       
+        showSlide(sliderIndex);        
+    }
+
+    function toPrevSlide() { 
+        sliderIndex -= 1;     
+        showSlide(sliderIndex);        
+    }
+
+    showSlide(sliderIndex);
+
+    nextSlide.addEventListener('click', (event) => {
+        const target = event.target;
+
+        if (target && target === nextSlide) {
+            toNextSlide();
+        }
+    }); 
+
+    prevSlide.addEventListener('click', (event) => {
+        const target = event.target;
+
+        if (target && target === prevSlide) {
+            toPrevSlide();
+        }
+    }); 
+       
+
 });
+
+
