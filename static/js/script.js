@@ -1,7 +1,7 @@
 'use strict'; 
 
 
-const deadline = '2024-04-04',
+const deadline = '2024-05-04',
     server_url = 'http://127.0.0.1:5000/';
 
 function zeroToTomeNumber (numb) {
@@ -14,6 +14,23 @@ function zeroToTomeNumber (numb) {
     }
 
     return numb;
+}
+
+function timeToDeadline (time) {
+    const nowDate = new Date(),
+        total = Date.parse(time) - Date.parse(nowDate),
+        days = Math.floor(total / 86400000),
+        hours = Math.floor(total / (1000 * 60 * 60) % 24),
+        minutes = Math.floor(total / (1000 * 60 ) % 60),
+        seconds = Math.floor(total / 1000 % 60);
+       
+    return {
+        total,
+        days,
+        hours,
+        minutes,
+        seconds
+    };
 }
 
 async function postRequest(url, method, body) {
@@ -81,24 +98,9 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     })
 
+
     //timer
     
-    function timeToDeadline (time) {
-        const nowDate = new Date(),
-            total = Date.parse(time) - Date.parse(nowDate),
-            days = Math.floor(total / 86400000),
-            hours = Math.floor(total / (1000 * 60 * 60) % 24),
-            minutes = Math.floor(total / (1000 * 60 ) % 60),
-            seconds = Math.floor(total / 1000 % 60);
-           
-        return {
-            total,
-            days,
-            hours,
-            minutes,
-            seconds
-        };
-    }
     
     function setTimer(endTime, cssSelector) {
         const timerBlock = document.querySelector(cssSelector),
@@ -307,52 +309,92 @@ window.addEventListener('DOMContentLoaded', () => {
     forms.forEach((form) => {
         postForm(form, server_url);
     });
+    
+
+    // Slider carousel
 
 
-    // Slider
-
-
-    let sliderIndex = 1;
-    const sliderContainer = document.querySelector('.offer__slider'),
+    const sliderWrapper = document.querySelector('.offer__slider-wrapper'),
+        sliderInner = document.querySelector('.offer__slider-inner'),
+        sliders = document.querySelectorAll('.offer__slide'),
         nextSlide = document.querySelector('.offer__slider-next'),
         prevSlide = document.querySelector('.offer__slider-prev'),
         totalSlides = document.querySelector('#total'),
-        currentSlide = document.querySelector('#current');
+        currentSlide = document.querySelector('#current'),
+        sliderWidth = window.getComputedStyle(sliderWrapper).width,
+        countSliders = sliders.length,
+        sliderNavigator = document.createElement('ol'),
+        dotsArray = [];
 
-    function showSlide(n) {
-        const sliders = sliderContainer.querySelectorAll('.offer__slide'),
-            countSlides = sliders.length;
+    let sliderIndex = 1,
+        sliderWidthInNum = Number.parseInt(sliderWidth),
+        sliderOffset = 0;
 
-        if (n > countSlides) {
-            sliderIndex = 1;
+    sliderInner.style.width = 100 * countSliders + '%';
+    sliders.forEach((slider) => {
+        slider.style.width = sliderWidth;
+    })  
+    sliderInner.classList.add('carousel-inner');
+    sliderWrapper.style.overflow = 'hidden';  
+    sliderWrapper.style.position = 'relative';     
+    totalSlides.textContent = `${zeroToTomeNumber(countSliders)}`; 
+    currentSlide.textContent = `${zeroToTomeNumber(sliderIndex)}`;  
+    
+    for (let i = 0; i < countSliders; i++) {
+        let dot = document.createElement('li');   
+        
+        if (i === 0) {
+            dot.style.opacity = '1';
+        } else {
+            dot.style.opacity = '0.5';
         }
+        
+        dot.setAttribute('data-slick-to', i);
+        dot.classList.add('dot');
+        sliderNavigator.append(dot);
+        dotsArray.push(dot);
+    }
 
-        if (n < 1) {
-            sliderIndex = countSlides
-        }    
+    sliderNavigator.classList.add('carousel-indicators');
+    sliderWrapper.append(sliderNavigator);   
 
-        totalSlides.textContent = `${zeroToTomeNumber(countSlides)}`;
-        sliders.forEach((item, i) => {            
-            if (i !== (sliderIndex - 1)) {
-                item.style.display = 'none';
+    function setDotOpacity(array, n) {
+        array.forEach((dot, i) => {
+            if (i === n) {
+                dot.style.opacity = '1';
             } else {
-                item.style.display = '';
-                currentSlide.textContent = `${zeroToTomeNumber(sliderIndex)}`;
+                dot.style.opacity = '0.5';
             }
-        });
+        })
     }
 
     function toNextSlide() { 
-        sliderIndex += 1;       
-        showSlide(sliderIndex);        
+        sliderIndex += 1;     
+        sliderOffset -= sliderWidthInNum;   
+
+        if (sliderOffset <= (-sliderWidthInNum * countSliders)) {
+            sliderOffset = 0;
+            sliderIndex = 1;
+        }
+
+        sliderInner.style.transform = `translateX(${sliderOffset}px)`;
+        currentSlide.textContent = `${zeroToTomeNumber(sliderIndex)}`;
+        setDotOpacity(dotsArray, sliderIndex - 1);
     }
 
     function toPrevSlide() { 
-        sliderIndex -= 1;     
-        showSlide(sliderIndex);        
+        sliderIndex -= 1;       
+        sliderOffset += sliderWidthInNum;  
+        
+        if (sliderOffset > 0) {
+            sliderOffset = -sliderWidthInNum * (countSliders - 1);
+            sliderIndex = countSliders;
+        }
+        
+        sliderInner.style.transform = `translateX(${sliderOffset}px)`;
+        currentSlide.textContent = `${zeroToTomeNumber(sliderIndex)}`;
+        setDotOpacity(dotsArray, sliderIndex - 1);
     }
-
-    showSlide(sliderIndex);
 
     nextSlide.addEventListener('click', (event) => {
         const target = event.target;
@@ -369,7 +411,7 @@ window.addEventListener('DOMContentLoaded', () => {
             toPrevSlide();
         }
     }); 
-       
+
 
 });
 
