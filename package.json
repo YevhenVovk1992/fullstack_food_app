@@ -4,8 +4,15 @@
   "description": "Fulstack develope. Backend with Python and Frontend in JavaScipt.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1", 
+    "dev": "webpack --mode=development",
+    "watch": "webpack --mode=development --watch",
+    "prod": "webpack --mode=production"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
+  }
 }

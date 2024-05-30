@@ -2,6 +2,189 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./static/src/moduls/calculator.js":
+/*!*****************************************!*\
+  !*** ./static/src/moduls/calculator.js ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   getInputData: () => (/* binding */ getInputData),
+/* harmony export */   getStaticChooses: () => (/* binding */ getStaticChooses)
+/* harmony export */ });
+ 
+    
+    // Calculator
+
+    let sex, height, weight, age, activity;
+
+    function calculateCalorieNeeds (sex, height, weight, age, activity, selector) {
+        const calculatingResult = document.querySelector(selector);
+
+        let result;
+
+        if (!age || !height || !sex || !weight || !activity) {
+            calculatingResult.textContent = '----';
+            return;
+        }                
+        
+        if (sex === 'man') {
+            result = Math.round((88.36 + (13.4 * weight) + (4.8 * height) - (5.7 * age)) * activity);
+        } else {
+            result = Math.round((447.6 + (9.2 * weight) + (3.1 * height) - (4.3 * age)) * activity);
+        }
+        calculatingResult.textContent = result;            
+    }
+
+    function getStaticChooses (id, activeClass) {
+        const elements = document.querySelectorAll(`${id} div`),
+            sexSet = new Set(['man', 'women']);
+
+        document.querySelector(id).addEventListener('click', (event) => {   
+            const target = event.target;
+
+            if (target.getAttribute('id') === id.slice(1)) {
+                return;
+            }
+            
+            if (sexSet.has(target.getAttribute('id'))) {                
+                sex = target.id;  
+            } 
+            
+            if (target.getAttribute('data-ratio')) {
+                activity = target.getAttribute('data-ratio');  
+            }          
+
+            elements.forEach((item => {
+                item.classList.remove(activeClass);
+            }));
+            target.classList.add(activeClass);
+            calculateCalorieNeeds(sex, height, weight, age, activity, '.calculating__result span');
+        }); 
+    }
+
+    function getInputData (parent_selector) {
+        const inputParent = document.querySelector(parent_selector);
+
+        inputParent.addEventListener('change', (event) => {
+            const target = event.target;          
+
+            switch (target.getAttribute('id')) {
+                case 'age': 
+                    age = +target.value;
+                    break;
+                case 'height': 
+                    height = +target.value;
+                    break;
+                case 'weight': 
+                    weight = +target.value;
+                    break;
+            } 
+            
+            calculateCalorieNeeds(sex, height, weight, age, activity, '.calculating__result span'); 
+        });   
+    }   
+
+    
+
+/***/ }),
+
+/***/ "./static/src/moduls/forms.js":
+/*!************************************!*\
+  !*** ./static/src/moduls/forms.js ***!
+  \************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./static/src/moduls/utils.js");
+/* harmony import */ var _modals__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modals */ "./static/src/moduls/modals.js");
+
+
+
+
+
+//Forms
+        
+function postForm(form, url) {
+    const statusForm = document.createElement('img'),
+        statusFields = {
+            loading: 'Загрузка',
+            loadingSpinner: '/static/icons/spinner.svg',
+            success: 'Успех',
+            failure: 'Ошибка'
+        };
+
+    statusForm.src = statusFields.loadingSpinner; 
+    statusForm.style.cssText = `
+        display: block;
+        margin: 0px auto;
+    `;             
+        
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const formData = new FormData(form),                
+            data_object = {};          
+                       
+        formData.forEach(function(value, key) {
+            data_object[key] = value;
+        });           
+        form.append(statusForm);            
+        (0,_utils__WEBPACK_IMPORTED_MODULE_0__.postRequest)(url, 'POST', data_object)
+            .then((response) => {
+                if (response.ok) {
+                    showMessageModal(statusFields.success);
+                    setTimeout(() => {
+                        statusForm.remove();
+                    }, 1000);
+                    return response.json();
+                } else {
+                    console.log(response.status);
+                }
+            })
+            .catch((error) => {
+                showMessageModal(statusFields.failure);
+                statusForm.remove();
+                console.log(error.message);
+            })
+            .finally(() => {
+                form.reset();    
+            })
+            .then((data) => {                   
+                console.log(data);
+            });      
+    });
+}
+
+function showMessageModal(message) {
+    const prevModalWindow = document.querySelector('.modal__dialog'),
+        messageModal = document.createElement('div');     
+
+    (0,_modals__WEBPACK_IMPORTED_MODULE_1__.openModal)();
+    messageModal.classList.add('modal__dialog');
+    messageModal.innerHTML = `
+        <div class="modal__content">            
+            <div class="modal__close" data-modal="0">×</div>
+            <div class="modal__title">${message}</div>
+        </div>`;
+    prevModalWindow.classList.add('hide');
+    prevModalWindow.parentNode.append(messageModal);
+    setTimeout(() => {
+        (0,_modals__WEBPACK_IMPORTED_MODULE_1__.closeModal)();
+        prevModalWindow.classList.remove('hide');
+        messageModal.remove();
+    }, 4000);
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (postForm);
+
+
+/***/ }),
+
 /***/ "./static/src/moduls/menu.js":
 /*!***********************************!*\
   !*** ./static/src/moduls/menu.js ***!
@@ -127,6 +310,128 @@ function createModalWindows() {
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (createModalWindows);
  
+
+/***/ }),
+
+/***/ "./static/src/moduls/slider_carousel.js":
+/*!**********************************************!*\
+  !*** ./static/src/moduls/slider_carousel.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./static/src/moduls/utils.js");
+ 
+
+
+
+// Slider carousel
+
+const sliderWrapper = document.querySelector('.offer__slider-wrapper'),
+    sliderInner = document.querySelector('.offer__slider-inner'),
+    sliders = document.querySelectorAll('.offer__slide'),
+    nextSlide = document.querySelector('.offer__slider-next'),
+    prevSlide = document.querySelector('.offer__slider-prev'),
+    totalSlides = document.querySelector('#total'),
+    currentSlide = document.querySelector('#current'),
+    sliderWidth = window.getComputedStyle(sliderWrapper).width,
+    countSliders = sliders.length,
+    sliderNavigator = document.createElement('ol'),
+    dotsArray = [];
+
+let sliderIndex = 1,
+    sliderWidthInNum = Number.parseInt(sliderWidth),
+    sliderOffset = 0;
+
+sliderInner.style.width = 100 * countSliders + '%';
+sliders.forEach((slider) => {
+    slider.style.width = sliderWidth;
+})  
+sliderInner.classList.add('carousel-inner');
+sliderWrapper.style.overflow = 'hidden';  
+sliderWrapper.style.position = 'relative';     
+totalSlides.textContent = `${(0,_utils__WEBPACK_IMPORTED_MODULE_0__.zeroToTomeNumber)(countSliders)}`; 
+currentSlide.textContent = `${(0,_utils__WEBPACK_IMPORTED_MODULE_0__.zeroToTomeNumber)(sliderIndex)}`;  
+
+for (let i = 0; i < countSliders; i++) {
+    let dot = document.createElement('li');   
+
+    if (i === 0) {
+        dot.style.opacity = '1';
+    } else {
+        dot.style.opacity = '0.5';
+    }
+
+    dot.setAttribute('data-slick-to', i);
+    dot.classList.add('dot');
+    sliderNavigator.append(dot);
+    dotsArray.push(dot);
+}
+
+sliderNavigator.classList.add('carousel-indicators');
+sliderWrapper.append(sliderNavigator);   
+
+function setDotOpacity(array, n) {
+    array.forEach((dot, i) => {
+        if (i === n) {
+            dot.style.opacity = '1';
+        } else {
+            dot.style.opacity = '0.5';
+        }
+    })
+}
+
+function toNextSlide() { 
+    sliderIndex += 1;     
+    sliderOffset -= sliderWidthInNum;   
+
+    if (sliderOffset <= (-sliderWidthInNum * countSliders)) {
+        sliderOffset = 0;
+        sliderIndex = 1;
+    }
+
+    sliderInner.style.transform = `translateX(${sliderOffset}px)`;
+    currentSlide.textContent = `${(0,_utils__WEBPACK_IMPORTED_MODULE_0__.zeroToTomeNumber)(sliderIndex)}`;
+    setDotOpacity(dotsArray, sliderIndex - 1);
+}
+
+function toPrevSlide() { 
+    sliderIndex -= 1;       
+    sliderOffset += sliderWidthInNum;  
+
+    if (sliderOffset > 0) {
+        sliderOffset = -sliderWidthInNum * (countSliders - 1);
+        sliderIndex = countSliders;
+    }
+
+    sliderInner.style.transform = `translateX(${sliderOffset}px)`;
+    currentSlide.textContent = `${(0,_utils__WEBPACK_IMPORTED_MODULE_0__.zeroToTomeNumber)(sliderIndex)}`;
+    setDotOpacity(dotsArray, sliderIndex - 1);
+}
+
+function initCarousel() {
+    nextSlide.addEventListener('click', (event) => {
+        const target = event.target;
+    
+        if (target && target === nextSlide) {
+            toNextSlide();
+        }
+    }); 
+    
+    prevSlide.addEventListener('click', (event) => {
+        const target = event.target;
+    
+        if (target && target === prevSlide) {
+            toPrevSlide();
+        }
+    }); 
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (initCarousel);
+
 
 /***/ }),
 
@@ -260,6 +565,7 @@ function setTimer(endTime, cssSelector) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   getRequest: () => (/* binding */ getRequest),
+/* harmony export */   postRequest: () => (/* binding */ postRequest),
 /* harmony export */   zeroToTomeNumber: () => (/* binding */ zeroToTomeNumber)
 /* harmony export */ });
 
@@ -289,6 +595,17 @@ async function getRequest(url) {
 
     return await request.json();
     
+}
+
+async function postRequest(url, method, body) {
+    const options = {
+        method: method,
+        headers: {'content-type': 'application/json; charset=utf8'}      
+        };
+
+    options.body = JSON.stringify(body);
+
+    return await fetch(url, options);
 }
 
 
@@ -363,6 +680,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _moduls_timer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./moduls/timer */ "./static/src/moduls/timer.js");
 /* harmony import */ var _moduls_modals__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./moduls/modals */ "./static/src/moduls/modals.js");
 /* harmony import */ var _moduls_menu__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./moduls/menu */ "./static/src/moduls/menu.js");
+/* harmony import */ var _moduls_slider_carousel__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./moduls/slider_carousel */ "./static/src/moduls/slider_carousel.js");
+/* harmony import */ var _moduls_calculator__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./moduls/calculator */ "./static/src/moduls/calculator.js");
+/* harmony import */ var _moduls_forms__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./moduls/forms */ "./static/src/moduls/forms.js");
  
 
 
@@ -372,30 +692,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
 const deadline = '2024-05-30',
-    server_url = 'http://127.0.0.1:5000/';
+    server_url = 'http://127.0.0.1:5000/',
+    forms = document.querySelectorAll('form');
 
-
-
-
-async function postRequest(url, method, body) {
-    const options = {
-        method: method,
-        headers: {'content-type': 'application/json; charset=utf8'}      
-        };
-
-    options.body = JSON.stringify(body);
-
-    return await fetch(url, options);
-}
-
-
-
-window.addEventListener('DOMContentLoaded', () => {
-
-    (0,_moduls_tabs__WEBPACK_IMPORTED_MODULE_0__["default"])();
-    (0,_moduls_timer__WEBPACK_IMPORTED_MODULE_2__["default"])(deadline,'.promotion__timer');
-    (0,_moduls_modals__WEBPACK_IMPORTED_MODULE_3__["default"])();
+window.addEventListener('DOMContentLoaded', () => {    
     (0,_moduls_utils__WEBPACK_IMPORTED_MODULE_1__.getRequest)(server_url + 'get_menu/')    
     .then((data) => {   
         let menuObj = JSON.parse(data).menu;
@@ -404,267 +707,16 @@ window.addEventListener('DOMContentLoaded', () => {
             new _moduls_menu__WEBPACK_IMPORTED_MODULE_4__.MenuElement(img, altimg, title, descr, price, '.menu .container').render();
         });
     });
-    
-    
-
-    //Forms
-
-    const forms = document.querySelectorAll('form');
-        
-
-    function postForm(form, url) {
-        const statusForm = document.createElement('img'),
-            statusFields = {
-                loading: 'Загрузка',
-                loadingSpinner: '/static/icons/spinner.svg',
-                success: 'Успех',
-                failure: 'Ошибка'
-            };
-
-        statusForm.src = statusFields.loadingSpinner; 
-        statusForm.style.cssText = `
-            display: block;
-            margin: 0px auto;
-        `;             
-            
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            
-            const formData = new FormData(form),                
-                data_object = {};          
-                           
-            formData.forEach(function(value, key) {
-                data_object[key] = value;
-            });           
-            form.append(statusForm);            
-            postRequest(url, 'POST', data_object)
-                .then((response) => {
-                    if (response.ok) {
-                        showMessageModal(statusFields.success);
-                        setTimeout(() => {
-                            statusForm.remove();
-                        }, 1000);
-                        return response.json();
-                    } else {
-                        console.log(response.status);
-                    }
-                })
-                .catch((error) => {
-                    showMessageModal(statusFields.failure);
-                    statusForm.remove();
-                    console.log(error.message);
-                })
-                .finally(() => {
-                    form.reset();    
-                })
-                .then((data) => {                   
-                    console.log(data);
-                });      
-        });
-    }
-
-    function showMessageModal(message) {
-        const prevModalWindow = document.querySelector('.modal__dialog'),
-            messageModal = document.createElement('div');     
-
-        (0,_moduls_modals__WEBPACK_IMPORTED_MODULE_3__.openModal)();
-        messageModal.classList.add('modal__dialog');
-        messageModal.innerHTML = `
-            <div class="modal__content">            
-                <div class="modal__close" data-modal="0">×</div>
-                <div class="modal__title">${message}</div>
-            </div>`;
-        prevModalWindow.classList.add('hide');
-        prevModalWindow.parentNode.append(messageModal);
-        setTimeout(() => {
-            (0,_moduls_modals__WEBPACK_IMPORTED_MODULE_3__.closeModal)();
-            prevModalWindow.classList.remove('hide');
-            messageModal.remove();
-        }, 4000);
-    }
-
+    (0,_moduls_tabs__WEBPACK_IMPORTED_MODULE_0__["default"])();
+    (0,_moduls_slider_carousel__WEBPACK_IMPORTED_MODULE_5__["default"])();
+    (0,_moduls_timer__WEBPACK_IMPORTED_MODULE_2__["default"])(deadline,'.promotion__timer');
+    (0,_moduls_modals__WEBPACK_IMPORTED_MODULE_3__["default"])();
+    (0,_moduls_calculator__WEBPACK_IMPORTED_MODULE_6__.getStaticChooses)('#gender', 'calculating__choose-item_active');
+    (0,_moduls_calculator__WEBPACK_IMPORTED_MODULE_6__.getStaticChooses)('#active', 'calculating__choose-item_active');
+    (0,_moduls_calculator__WEBPACK_IMPORTED_MODULE_6__.getInputData)('.calculating__choose_medium');    
     forms.forEach((form) => {
-        postForm(form, server_url);
-    });
-    
-
-    // Slider carousel
-
-
-    const sliderWrapper = document.querySelector('.offer__slider-wrapper'),
-        sliderInner = document.querySelector('.offer__slider-inner'),
-        sliders = document.querySelectorAll('.offer__slide'),
-        nextSlide = document.querySelector('.offer__slider-next'),
-        prevSlide = document.querySelector('.offer__slider-prev'),
-        totalSlides = document.querySelector('#total'),
-        currentSlide = document.querySelector('#current'),
-        sliderWidth = window.getComputedStyle(sliderWrapper).width,
-        countSliders = sliders.length,
-        sliderNavigator = document.createElement('ol'),
-        dotsArray = [];
-
-    let sliderIndex = 1,
-        sliderWidthInNum = Number.parseInt(sliderWidth),
-        sliderOffset = 0;
-
-    sliderInner.style.width = 100 * countSliders + '%';
-    sliders.forEach((slider) => {
-        slider.style.width = sliderWidth;
-    })  
-    sliderInner.classList.add('carousel-inner');
-    sliderWrapper.style.overflow = 'hidden';  
-    sliderWrapper.style.position = 'relative';     
-    totalSlides.textContent = `${(0,_moduls_utils__WEBPACK_IMPORTED_MODULE_1__.zeroToTomeNumber)(countSliders)}`; 
-    currentSlide.textContent = `${(0,_moduls_utils__WEBPACK_IMPORTED_MODULE_1__.zeroToTomeNumber)(sliderIndex)}`;  
-    
-    for (let i = 0; i < countSliders; i++) {
-        let dot = document.createElement('li');   
-        
-        if (i === 0) {
-            dot.style.opacity = '1';
-        } else {
-            dot.style.opacity = '0.5';
-        }
-        
-        dot.setAttribute('data-slick-to', i);
-        dot.classList.add('dot');
-        sliderNavigator.append(dot);
-        dotsArray.push(dot);
-    }
-
-    sliderNavigator.classList.add('carousel-indicators');
-    sliderWrapper.append(sliderNavigator);   
-
-    function setDotOpacity(array, n) {
-        array.forEach((dot, i) => {
-            if (i === n) {
-                dot.style.opacity = '1';
-            } else {
-                dot.style.opacity = '0.5';
-            }
-        })
-    }
-
-    function toNextSlide() { 
-        sliderIndex += 1;     
-        sliderOffset -= sliderWidthInNum;   
-
-        if (sliderOffset <= (-sliderWidthInNum * countSliders)) {
-            sliderOffset = 0;
-            sliderIndex = 1;
-        }
-
-        sliderInner.style.transform = `translateX(${sliderOffset}px)`;
-        currentSlide.textContent = `${(0,_moduls_utils__WEBPACK_IMPORTED_MODULE_1__.zeroToTomeNumber)(sliderIndex)}`;
-        setDotOpacity(dotsArray, sliderIndex - 1);
-    }
-
-    function toPrevSlide() { 
-        sliderIndex -= 1;       
-        sliderOffset += sliderWidthInNum;  
-        
-        if (sliderOffset > 0) {
-            sliderOffset = -sliderWidthInNum * (countSliders - 1);
-            sliderIndex = countSliders;
-        }
-        
-        sliderInner.style.transform = `translateX(${sliderOffset}px)`;
-        currentSlide.textContent = `${(0,_moduls_utils__WEBPACK_IMPORTED_MODULE_1__.zeroToTomeNumber)(sliderIndex)}`;
-        setDotOpacity(dotsArray, sliderIndex - 1);
-    }
-
-    nextSlide.addEventListener('click', (event) => {
-        const target = event.target;
-
-        if (target && target === nextSlide) {
-            toNextSlide();
-        }
-    }); 
-
-    prevSlide.addEventListener('click', (event) => {
-        const target = event.target;
-
-        if (target && target === prevSlide) {
-            toPrevSlide();
-        }
-    }); 
-
-        
-    // Calculator
-
-
-    let sex, height, weight, age, activity;
-
-    function calculateCalorieNeeds (sex, height, weight, age, activity, selector) {
-        const calculatingResult = document.querySelector(selector);
-
-        let result;
-
-        if (!age || !height || !sex || !weight || !activity) {
-            calculatingResult.textContent = '----';
-            return;
-        }                
-        
-        if (sex === 'man') {
-            result = Math.round((88.36 + (13.4 * weight) + (4.8 * height) - (5.7 * age)) * activity);
-        } else {
-            result = Math.round((447.6 + (9.2 * weight) + (3.1 * height) - (4.3 * age)) * activity);
-        }
-        calculatingResult.textContent = result;            
-    }
-
-    function getStaticChooses (id, activeClass) {
-        const elements = document.querySelectorAll(`${id} div`),
-            sexSet = new Set(['man', 'women']);
-
-        document.querySelector(id).addEventListener('click', (event) => {   
-            const target = event.target;
-
-            if (target.getAttribute('id') === id.slice(1)) {
-                return;
-            }
-            
-            if (sexSet.has(target.getAttribute('id'))) {                
-                sex = target.id;  
-            } 
-            
-            if (target.getAttribute('data-ratio')) {
-                activity = target.getAttribute('data-ratio');  
-            }          
-
-            elements.forEach((item => {
-                item.classList.remove(activeClass);
-            }));
-            target.classList.add(activeClass);
-            calculateCalorieNeeds(sex, height, weight, age, activity, '.calculating__result span');
-        }); 
-    }
-
-    function getInputData (parent_selector) {
-        const inputParent = document.querySelector(parent_selector);
-
-        inputParent.addEventListener('change', (event) => {
-            const target = event.target;          
-
-            switch (target.getAttribute('id')) {
-                case 'age': 
-                    age = +target.value;
-                    break;
-                case 'height': 
-                    height = +target.value;
-                    break;
-                case 'weight': 
-                    weight = +target.value;
-                    break;
-            } 
-            
-            calculateCalorieNeeds(sex, height, weight, age, activity, '.calculating__result span'); 
-        });   
-    }
-  
-    getStaticChooses('#gender', 'calculating__choose-item_active');
-    getStaticChooses('#active', 'calculating__choose-item_active');
-    getInputData('.calculating__choose_medium'); 
+        (0,_moduls_forms__WEBPACK_IMPORTED_MODULE_7__["default"])(form, server_url);
+    });   
 });
 
 
